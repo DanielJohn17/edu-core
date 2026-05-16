@@ -10,8 +10,14 @@ subjectsRouter.get("/", async (req, res) => {
   try {
     const { search, department, page = 1, limit = 10 } = req.query;
 
-    const currentPage = Math.max(1, +page);
-    const limitPerPage = Math.max(1, +limit);
+    const parsedPage = Number.parseInt(String(page), 10);
+    const parsedLimit = Number.parseInt(String(limit), 10);
+    const currentPage =
+      Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1;
+    const limitPerPage =
+      Number.isFinite(parsedLimit) && parsedLimit > 0
+        ? Math.min(parsedLimit, 100)
+        : 10;
 
     const offset = (currentPage - 1) * limitPerPage;
 
@@ -29,7 +35,8 @@ subjectsRouter.get("/", async (req, res) => {
 
     // If department query exists, filter by department name
     if (department) {
-      filterCondition.push(ilike(departments.name, `%${department}%`));
+      const deptPattern = `%${String(department).replace(/[%_]/g, "\\$&")}%`;
+      filterCondition.push(ilike(departments.name, deptPattern));
     }
 
     // Comibine all filters if any exists

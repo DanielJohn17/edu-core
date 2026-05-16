@@ -8,11 +8,15 @@ import subjectsRouter from "./routes/subject";
 const app = express();
 const PORT = 8000;
 
-if (!process.env.FRONTEND_URL) throw new Error("FRONTEND_URL is not defined");
-
+const frontendUrl = process.env.FRONTEND_URL?.trim();
+if (!frontendUrl) throw new Error("FRONTEND_URL is not defined");
+if (frontendUrl === "*") {
+  throw new Error("FRONTEND_URL cannot be '*' when credentials are enabled");
+}
+new URL(frontendUrl); // Throws if malformed
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL,
+    origin: frontendUrl,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     credentials: true,
   }),
