@@ -1,12 +1,30 @@
 import "dotenv/config";
+import cors from "cors";
 import express from "express";
 import { db } from "./db/db";
 import { sql } from "drizzle-orm";
+import subjectsRouter from "./routes/subject";
 
 const app = express();
 const PORT = 8000;
 
+const frontendUrl = process.env.FRONTEND_URL?.trim();
+if (!frontendUrl) throw new Error("FRONTEND_URL is not defined");
+if (frontendUrl === "*") {
+  throw new Error("FRONTEND_URL cannot be '*' when credentials are enabled");
+}
+new URL(frontendUrl); // Throws if malformed
+app.use(
+  cors({
+    origin: frontendUrl,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+    credentials: true,
+  }),
+);
+
 app.use(express.json());
+
+app.use("/api/subjects", subjectsRouter);
 
 app.get("/", (_req, res) => {
   res.json({ message: "Edu-Core API is running." });
