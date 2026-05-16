@@ -1,6 +1,7 @@
 import "dotenv/config";
 import express from "express";
 import { db } from "./db/db";
+import { sql } from "drizzle-orm";
 
 const app = express();
 const PORT = 8000;
@@ -13,13 +14,13 @@ app.get("/", (_req, res) => {
 
 app.get("/health", async (_req, res) => {
   try {
-    const result = await db.execute("SELECT 1");
+    const result = await db.execute(sql`SELECT 1`);
     res.json({ status: "healthy", database: "connected", result });
   } catch (error) {
+    console.error("Health check failed:", error);
     res.status(503).json({
       status: "unhealthy",
       database: "disconnected",
-      error: String(error),
     });
   }
 });
