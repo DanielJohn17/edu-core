@@ -58,7 +58,7 @@ export default function SubjectList() {
         },
         {
           id: "department",
-          accessorKey: "department",
+          accessorKey: "department.name",
           size: 150,
           header: () => <p className="column-title">Department</p>,
           cell: ({ getValue }) => (
@@ -95,6 +95,7 @@ export default function SubjectList() {
       <h1 className="page-title">Subjects</h1>
 
       <div className="intro-row">
+        <p>Quick access to essential metrics and management tools.</p>
         <div className="actions-row">
           <div className="search-field">
             <Search className="search-icon" />
