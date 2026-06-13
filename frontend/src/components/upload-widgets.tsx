@@ -34,7 +34,7 @@ export function UploadWidget({ value = null, onChange, disabled = false }) {
           multiple: false,
           folder: "uploads",
           maxFileSize: MAX_FILE_SIZE,
-          clientAllowedFormats: ["jpg", "png", "gif", "webp"],
+          clientAllowedFormats: ["jpg", "png", "webp"],
         },
         (error, result) => {
           if (!error && result.event === "success") {
@@ -92,7 +92,7 @@ export function UploadWidget({ value = null, onChange, disabled = false }) {
 
             <div>
               <p>Click to Upload</p>
-              <p>PNG, JPG up to 5MB</p>
+              <p>PNG, JPG, WEBP up to 5MB</p>
             </div>
           </div>
         </div>
