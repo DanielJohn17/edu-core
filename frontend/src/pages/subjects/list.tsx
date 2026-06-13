@@ -18,7 +18,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Search } from "lucide-react";
 import { useMemo, useState } from "react";
 
-export default function SubjectList() {
+export default function SubjectsList() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDepartement, setSelectedDepartment] = useState("all");
 
