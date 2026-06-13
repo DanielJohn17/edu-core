@@ -28,4 +28,20 @@ const MOCK_SUBJECTS = [
   },
 ];
 
-export { MOCK_SUBJECTS };
+const TEACHERS = [
+  { id: "1", name: "Alice Johnson" },
+  { id: "2", name: "Bob Smith" },
+  { id: "3", name: "Carol Williams" },
+  { id: "4", name: "David Brown" },
+  { id: "5", name: "Eve Davis" },
+];
+
+const SUBJECTS = [
+  { id: 1, name: "Mathematics", code: "MATH" },
+  { id: 2, name: "Computer Science", code: "CS" },
+  { id: 3, name: "Physics", code: "PHYS" },
+  { id: 4, name: "English", code: "ENG" },
+  { id: 5, name: "Biology", code: "BIO" },
+];
+
+export { MOCK_SUBJECTS, TEACHERS, SUBJECTS };

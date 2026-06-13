@@ -1,3 +1,3 @@
-export default function SubjectCreate() {
+export default function SubjectsCreate() {
   return <div>Create</div>;
 }
