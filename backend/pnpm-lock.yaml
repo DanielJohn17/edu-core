@@ -8,9 +8,6 @@ importers:
 
   .:
     dependencies:
-      '@arcjet/inspect':
-        specifier: ^1.10.0
-        version: 1.10.0
       '@arcjet/node':
         specifier: ^1.10.0
         version: 1.10.0
@@ -83,10 +80,6 @@ packages:
 
   '@arcjet/headers@1.10.0':
     resolution: {integrity: sha512-MPwP1lO+iMJNca0D1fWxdW/4sj/5hZ8D7YKpJ6JN4W6joiW45+bFhJBnJnVRjIsl/alsIKdZMIBVUlcv0vEZaQ==}
-    engines: {node: '>=22.21.0 <23 || >=24.5.0'}
-
-  '@arcjet/inspect@1.10.0':
-    resolution: {integrity: sha512-EgFBUSMcYyqq8phy5PF2nO3rbBREAkECqK5d5cC3Pus6Z0VXlcMP7LQagKjgV+/jt2B/XW9Jjg+fiVd/jOgmDQ==}
     engines: {node: '>=22.21.0 <23 || >=24.5.0'}
 
   '@arcjet/ip@1.10.0':
@@ -1128,10 +1121,6 @@ snapshots:
   '@arcjet/env@1.10.0': {}
 
   '@arcjet/headers@1.10.0': {}
-
-  '@arcjet/inspect@1.10.0':
-    dependencies:
-      '@arcjet/protocol': 1.10.0
 
   '@arcjet/ip@1.10.0': {}
 
