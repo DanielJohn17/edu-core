@@ -8,6 +8,20 @@
       "when": 1786979596761,
       "tag": "0000_rare_veda",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1787682015999,
+      "tag": "0001_simple_amazoness",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1787685576787,
+      "tag": "0002_charming_bug",
+      "breakpoints": true
     }
   ]
 }
