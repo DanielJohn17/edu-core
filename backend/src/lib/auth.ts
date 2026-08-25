@@ -20,7 +20,7 @@ export const auth = betterAuth({
         type: "string",
         required: true,
         defaultValue: "student",
-        input: true, // Allow role to be set during registration
+        input: false, // Role must be assigned via protected server-side flow
       },
       imageCldPubId: {
         type: "string",
