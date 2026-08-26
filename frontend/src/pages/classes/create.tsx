@@ -1,7 +1,7 @@
 import { CreateView } from "@/components/refine-ui/views/create-view.tsx";
 import { Breadcrumb } from "@/components/refine-ui/layout/breadcrumb.tsx";
 import { Button } from "@/components/ui/button.tsx";
-import { useBack } from "@refinedev/core";
+import { useBack, useList } from "@refinedev/core";
 import { Separator } from "@/components/ui/separator.tsx";
 import {
   Card,
@@ -32,8 +32,8 @@ import {
 } from "@/components/ui/select.tsx";
 import { Textarea } from "@/components/ui/textarea.tsx";
 import { Loader2 } from "lucide-react";
-import { SUBJECTS, TEACHERS } from "@/constants/mock-data";
 import { UploadWidget } from "@/components/upload-widgets";
+import { Subject, User, UserRole } from "@/types";
 
 export default function ClassesCreate() {
   const back = useBack();
@@ -47,6 +47,7 @@ export default function ClassesCreate() {
   });
 
   const {
+    refineCore: { onFinish },
     handleSubmit,
     formState: { isSubmitting, errors },
     control,
@@ -54,11 +55,32 @@ export default function ClassesCreate() {
 
   const onSubmit = async (values: z.infer<typeof classSchema>) => {
     try {
-      console.log(values);
+      await onFinish(values);
     } catch (error) {
       console.error("Error creating class:", error);
     }
   };
+
+  const { query: subjectsQuery } = useList<Subject>({
+    resource: "subjects",
+    pagination: {
+      pageSize: 100,
+    },
+  });
+
+  const { query: teachersQuery } = useList<User>({
+    resource: "users",
+    filters: [{ field: "role", operator: "eq", value: UserRole.TEACHER }],
+    pagination: {
+      pageSize: 100,
+    },
+  });
+
+  const subjects = subjectsQuery?.data?.data || [];
+  const subjectsLoading = subjectsQuery.isLoading;
+
+  const teachers = teachersQuery?.data?.data || [];
+  const teachersLoading = teachersQuery.isLoading;
 
   const bannerPublicId = form.watch("bannerCldPubId");
 
@@ -172,6 +194,7 @@ export default function ClassesCreate() {
                             field.onChange(Number(value))
                           }
                           value={field.value?.toString()}
+                          disabled={subjectsLoading}
                         >
                           <FormControl>
                             <SelectTrigger className="w-full">
@@ -179,7 +202,7 @@ export default function ClassesCreate() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {SUBJECTS.map((subject) => (
+                            {subjects.map((subject) => (
                               <SelectItem
                                 key={subject.id}
                                 value={subject.id.toString()}
@@ -205,6 +228,7 @@ export default function ClassesCreate() {
                         <Select
                           onValueChange={field.onChange}
                           value={field.value}
+                          disabled={teachersLoading}
                         >
                           <FormControl>
                             <SelectTrigger className="w-full">
@@ -212,7 +236,7 @@ export default function ClassesCreate() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {TEACHERS.map((teacher) => (
+                            {teachers.map((teacher) => (
                               <SelectItem
                                 key={teacher.id}
                                 value={teacher.id.toString()}

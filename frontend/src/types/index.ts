@@ -99,23 +99,23 @@ export interface UploadWidgetValue {
 //   disabled?: boolean;
 // }
 
-// export enum UserRole {
-//   STUDENT = "student",
-//   TEACHER = "teacher",
-//   ADMIN = "admin",
-// }
+export enum UserRole {
+  STUDENT = "student",
+  TEACHER = "teacher",
+  ADMIN = "admin",
+}
 
-// export type User = {
-//   id: string;
-//   createdAt: string;
-//   updatedAt: string;
-//   email: string;
-//   name: string;
-//   role: UserRole;
-//   image?: string;
-//   imageCldPubId?: string;
-//   department?: string;
-// };
+export type User = {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+  email: string;
+  name: string;
+  role: UserRole;
+  image?: string;
+  imageCldPubId?: string;
+  department?: string;
+};
 
 // export type Schedule = {
 //   day: string;
