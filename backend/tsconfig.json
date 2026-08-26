@@ -5,8 +5,8 @@
     "lib": ["ES2022"],
 
     /* Node ESM */
-    "module": "ES2022",
-    "moduleResolution": "node",
+    "module": "commonjs",
+    // "moduleResolution": "node",
 
     /* Project structure */
     "rootDir": "src",
@@ -28,7 +28,7 @@
     "skipLibCheck": true,
 
     /* Environment types */
-    "types": ["node"],
+    "types": ["node"]
   },
-  "include": ["src"],
+  "include": ["src"]
 }

@@ -1,3 +1,6 @@
+import AgentAPI from "apminsight";
+AgentAPI.config();
+
 import "dotenv/config";
 import cors from "cors";
 import express from "express";
@@ -5,7 +8,7 @@ import { db } from "./db/db";
 import { sql } from "drizzle-orm";
 import subjectsRouter from "./routes/subject";
 import securityMiddleware from "./middleware/security";
-import {toNodeHandler} from "better-auth/node"
+import { toNodeHandler } from "better-auth/node";
 import { auth } from "./lib/auth";
 
 const app = express();
