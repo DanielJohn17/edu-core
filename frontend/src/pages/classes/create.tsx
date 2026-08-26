@@ -33,7 +33,7 @@ import {
 import { Textarea } from "@/components/ui/textarea.tsx";
 import { Loader2 } from "lucide-react";
 import { UploadWidget } from "@/components/upload-widgets";
-import { Subject, User, UserRole } from "@/types";
+import { Subject, UploadWidgetValue, User, UserRole } from "@/types";
 
 export default function ClassesCreate() {
   const back = useBack();
@@ -84,7 +84,10 @@ export default function ClassesCreate() {
 
   const bannerPublicId = form.watch("bannerCldPubId");
 
-  const setBannerImage = (file: any, field: any) => {
+  const setBannerImage = (
+    file: UploadWidgetValue | null,
+    field: { onChange: (value: string) => void },
+  ) => {
     if (file) {
       field.onChange(file.url);
       form.setValue("bannerCldPubId", file.publicId, {
@@ -144,7 +147,7 @@ export default function ClassesCreate() {
                                 }
                               : null
                           }
-                          onChange={(file: any) => setBannerImage(file, field)}
+                          onChange={(file) => setBannerImage(file, field)}
                         />
                       </FormControl>
 
