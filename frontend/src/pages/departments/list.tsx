@@ -15,29 +15,15 @@ import { DataTable } from "@/components/refine-ui/data-table/data-table.tsx";
 import { useTable } from "@refinedev/react-table";
 import { Department } from "@/types";
 import { ColumnDef } from "@tanstack/react-table";
-import { Badge } from "@/components/ui/badge.tsx";
-import { MOCK_DEPARTMENTS } from "@/constants/mock-data.ts";
 import { ShowButton } from "@/components/refine-ui/buttons/show.tsx";
 
 export default function DepartmentsList() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedDepartment, setSelectedDepartment] = useState("all");
-  const [selectedHeadcount, setSelectedHeadcount] = useState("all");
   const [selectedSort, setSelectedSort] = useState("id-desc");
 
   const searchFilters = searchQuery
     ? [{ field: "name", operator: "contains" as const, value: searchQuery }]
     : [];
-
-  const departmentFilters =
-    selectedDepartment === "all"
-      ? []
-      : [{ field: "departmentName", operator: "eq" as const, value: selectedDepartment }];
-
-  const headcountFilters =
-    selectedHeadcount === "all"
-      ? []
-      : [{ field: "headcountRange", operator: "eq" as const, value: selectedHeadcount }];
 
   const currentSorters = useMemo(() => {
     switch (selectedSort) {
@@ -45,10 +31,6 @@ export default function DepartmentsList() {
         return [{ field: "name", order: "asc" as const }];
       case "name-desc":
         return [{ field: "name", order: "desc" as const }];
-      case "dept-desc":
-        return [{ field: "department", order: "desc" as const }];
-      case "dept-asc":
-        return [{ field: "department", order: "asc" as const }];
       case "code-asc":
         return [{ field: "code", order: "asc" as const }];
       default:
@@ -83,24 +65,13 @@ export default function DepartmentsList() {
         ),
       },
       {
-        id: "department",
-        accessorKey: "department",
-        size: 120,
-        header: () => <p className="column-title">Department</p>,
-        cell: ({ getValue }) => (
-          <span className="text-foreground font-semibold">
-            {getValue<number>()}
-          </span>
-        ),
-      },
-      {
         id: "description",
         accessorKey: "description",
-        size: 300,
+        size: 360,
         header: () => <p className="column-title">Description</p>,
         cell: ({ getValue }) => (
           <span className="text-muted-foreground truncate line-clamp-1">
-            {getValue<string>()}
+            {getValue<string | null>() ?? "-"}
           </span>
         ),
       },
@@ -129,11 +100,7 @@ export default function DepartmentsList() {
       resource: "departments",
       pagination: { pageSize: 10, mode: "server" },
       filters: {
-        permanent: [
-          ...searchFilters,
-          ...departmentFilters,
-          ...headcountFilters,
-        ],
+        permanent: [...searchFilters],
       },
       sorters: {
         permanent: currentSorters,
@@ -148,7 +115,7 @@ export default function DepartmentsList() {
       <h1 className="page-title">Departments</h1>
 
       <div className="intro-row">
-        <p>Quick access to essential metrics and management tools.</p>
+        <p>Manage and browse all departments in the institution.</p>
 
         <div className="actions-row">
           <div className="search-field">
@@ -156,7 +123,7 @@ export default function DepartmentsList() {
 
             <Input
               type="text"
-              placeholder="Search by name..."
+              placeholder="Search by name or code..."
               className="pl-10 w-full"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -164,43 +131,6 @@ export default function DepartmentsList() {
           </div>
 
           <div className="flex flex-wrap gap-2 w-full sm:w-auto">
-            {/* Filter by Department */}
-            <Select
-              value={selectedDepartment}
-              onValueChange={setSelectedDepartment}
-            >
-              <SelectTrigger className="w-[170px]">
-                <SelectValue placeholder="Filter by department" />
-              </SelectTrigger>
-
-              <SelectContent>
-                <SelectItem value="all">All Departments</SelectItem>
-                {MOCK_DEPARTMENTS.map((dept) => (
-                  <SelectItem key={dept.id} value={dept.name}>
-                    {dept.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            {/* Filter by Headcount Size */}
-            <Select
-              value={selectedHeadcount}
-              onValueChange={setSelectedHeadcount}
-            >
-              <SelectTrigger className="w-[160px]">
-                <SelectValue placeholder="Filter by size" />
-              </SelectTrigger>
-
-              <SelectContent>
-                <SelectItem value="all">All Headcounts</SelectItem>
-                <SelectItem value="small">Small (&lt; 40)</SelectItem>
-                <SelectItem value="medium">Medium (40 - 70)</SelectItem>
-                <SelectItem value="large">Large (&gt; 70)</SelectItem>
-              </SelectContent>
-            </Select>
-
-            {/* Sort Options */}
             <Select value={selectedSort} onValueChange={setSelectedSort}>
               <SelectTrigger className="w-[160px]">
                 <SelectValue placeholder="Sort by" />
@@ -210,8 +140,6 @@ export default function DepartmentsList() {
                 <SelectItem value="id-desc">Latest Added</SelectItem>
                 <SelectItem value="name-asc">Name (A - Z)</SelectItem>
                 <SelectItem value="name-desc">Name (Z - A)</SelectItem>
-                <SelectItem value="dept-desc">Highest Members</SelectItem>
-                <SelectItem value="dept-asc">Lowest Members</SelectItem>
                 <SelectItem value="code-asc">Code (A - Z)</SelectItem>
               </SelectContent>
             </Select>

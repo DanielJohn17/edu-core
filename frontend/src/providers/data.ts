@@ -1,5 +1,4 @@
 import { BACKEND_BASE_URL } from "@/constants";
-import { MOCK_DEPARTMENTS } from "@/constants/mock-data";
 import { CreateResponse, ListResponse } from "@/types";
 import { DataProvider, GetOneResponse, HttpError } from "@refinedev/core";
 import { createDataProvider, CreateDataProviderOptions } from "@refinedev/rest";
@@ -47,7 +46,8 @@ const options: CreateDataProviderOptions = {
         }
 
         if (resource === "departments") {
-          if (field === "name" || field === "code") params.search = value;
+          if (field === "name" || field === "code" || field === "search")
+            params.search = value;
         }
       });
 
@@ -95,103 +95,6 @@ const options: CreateDataProviderOptions = {
   },
 };
 
-const { dataProvider: baseDataProvider } = createDataProvider(
-  BACKEND_BASE_URL,
-  options,
-);
-
-const dataProvider: DataProvider = {
-  ...baseDataProvider,
-  getList: async (params) => {
-    if (params.resource === "departments") {
-      let data = [...MOCK_DEPARTMENTS];
-
-      params.filters?.forEach((filter) => {
-        if (!("field" in filter) || !filter.value || filter.value === "all") return;
-        const field = filter.field;
-        const val = String(filter.value);
-
-        if (field === "name" || field === "code" || field === "search") {
-          const search = val.toLowerCase();
-          data = data.filter(
-            (d) =>
-              d.name.toLowerCase().includes(search) ||
-              d.code.toLowerCase().includes(search) ||
-              d.description.toLowerCase().includes(search),
-          );
-        }
-
-        if (field === "departmentName") {
-          data = data.filter(
-            (d) => d.name.toLowerCase() === val.toLowerCase(),
-          );
-        }
-
-        if (field === "headcountRange") {
-          if (val === "small") data = data.filter((d) => d.department < 40);
-          if (val === "medium")
-            data = data.filter(
-              (d) => d.department >= 40 && d.department <= 70,
-            );
-          if (val === "large") data = data.filter((d) => d.department > 70);
-        }
-      });
-
-      if (params.sorters && params.sorters.length > 0) {
-        const sorter = params.sorters[0];
-        const field = sorter.field as keyof (typeof data)[0];
-        const order = sorter.order;
-        data.sort((a, b) => {
-          const valA = a[field];
-          const valB = b[field];
-          if (typeof valA === "string" && typeof valB === "string") {
-            return order === "asc"
-              ? valA.localeCompare(valB)
-              : valB.localeCompare(valA);
-          }
-          return order === "asc"
-            ? Number(valA) - Number(valB)
-            : Number(valB) - Number(valA);
-        });
-      }
-
-      const page = params.pagination?.currentPage ?? 1;
-      const pageSize = params.pagination?.pageSize ?? 10;
-      const startIndex = (page - 1) * pageSize;
-      const paginatedData = data.slice(startIndex, startIndex + pageSize);
-
-      return {
-        data: paginatedData as any,
-        total: data.length,
-      };
-    }
-    return baseDataProvider.getList(params);
-  },
-  getOne: async (params) => {
-    if (params.resource === "departments") {
-      const item = MOCK_DEPARTMENTS.find(
-        (d) => String(d.id) === String(params.id),
-      );
-      return {
-        data: (item ?? MOCK_DEPARTMENTS[0]) as any,
-      };
-    }
-    return baseDataProvider.getOne(params);
-  },
-  create: async (params) => {
-    if (params.resource === "departments") {
-      const newDept = {
-        id: Date.now(),
-        ...(params.variables as any),
-      };
-      MOCK_DEPARTMENTS.unshift(newDept);
-      return {
-        data: newDept as any,
-      };
-    }
-    return baseDataProvider.create(params);
-  },
-};
+const { dataProvider } = createDataProvider(BACKEND_BASE_URL, options);
 
 export { dataProvider };
-

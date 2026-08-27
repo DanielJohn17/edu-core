@@ -35,12 +35,42 @@ export type Department = {
   id: number;
   name: string;
   code: string;
-  department: number;
-  description: string;
+  description: string | null;
   createdAt?: string;
-  headcount?: number;
-  facultyCount?: number;
-  subjectCount?: number;
+  updatedAt?: string;
+};
+
+export type DepartmentSubject = {
+  id: number;
+  code: string;
+  name: string;
+  description: string | null;
+};
+
+export type DepartmentClass = {
+  id: number;
+  name: string;
+  capacity: number;
+  status: "active" | "inactive" | "archived";
+  subject: { id: number; name: string; code: string } | null;
+  teacher: {
+    id: string;
+    name: string;
+    email: string;
+    image: string | null;
+  } | null;
+};
+
+export type DepartmentStats = {
+  totalSubjects: number;
+  totalClasses: number;
+  enrolledStudents: number;
+};
+
+export type DepartmentDetail = Department & {
+  subjects: DepartmentSubject[];
+  classes: DepartmentClass[];
+  stats: DepartmentStats;
 };
 
 export type ClassDetails = {
