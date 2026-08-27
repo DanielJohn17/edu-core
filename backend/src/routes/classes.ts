@@ -1,8 +1,9 @@
 import express from "express";
 import { db } from "../db/db";
 import { classes, subjects } from "../db/schema";
-import { and, ilike, or, eq, sql, desc } from "drizzle-orm";
+import { and, ilike, or, eq, desc } from "drizzle-orm";
 import { getTableColumns } from "drizzle-orm";
+import { count } from "drizzle-orm";
 
 const classesRouter = express.Router();
 
@@ -34,7 +35,7 @@ classesRouter.get("/", async (req, res) => {
 
   if (subject) {
     filterCondition.push(
-      ilike(subjects.name, `%${String(subject).replace(/[%_]/g, "\\$&")}%`),
+      ilike(subjects.name, `%${String(subject).replace(/([%_\\])/g, "\\$&")}%`),
     );
   }
 
@@ -42,7 +43,7 @@ classesRouter.get("/", async (req, res) => {
     filterCondition.length > 0 ? and(...filterCondition) : undefined;
 
   const countResult = await db
-    .select({ count: sql<number>`count(*)` })
+    .select({ count: count() })
     .from(classes)
     .leftJoin(subjects, eq(classes.subjectId, subjects.id))
     .where(whereClause);
