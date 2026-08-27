@@ -10,6 +10,7 @@ import subjectsRouter from "./routes/subject";
 import usersRouter from "./routes/users";
 import classesRouter from "./routes/classes";
 import departmentsRouter from "./routes/department";
+import enrollmentsRouter from "./routes/enrollments";
 import securityMiddleware from "./middleware/security";
 import { toNodeHandler } from "better-auth/node";
 import { auth } from "./lib/auth";
@@ -41,6 +42,7 @@ app.use("/api/subjects", subjectsRouter);
 app.use("/api/users", usersRouter);
 app.use("/api/classes", classesRouter);
 app.use("/api/departments", departmentsRouter);
+app.use("/api/enrollments", enrollmentsRouter);
 
 app.get("/", (_req, res) => {
   res.json({ message: "Edu-Core API is running." });

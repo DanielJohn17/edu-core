@@ -2,40 +2,52 @@ import { and, desc, eq, getTableColumns, ilike, or, sql } from "drizzle-orm";
 import express from "express";
 import { user } from "../db/schema";
 import { db } from "../db/db";
+import {
+  validateParams,
+  validateQuery,
+} from "../middleware/validate";
+import {
+  stringIdParamSchema,
+  userQuerySchema,
+} from "../validations";
 
 const usersRouter = express.Router();
 
-// Get all users with optional search, filtering and pagination
-usersRouter.get("/", async (req, res) => {
+// GET /api/users - Get all users with optional search, role filter, and pagination
+usersRouter.get("/", validateQuery(userQuerySchema), async (req, res) => {
   try {
-    const { search, role, page = 1, limit = 10 } = req.query;
+    const {
+      search,
+      role,
+      page = 1,
+      limit = 10,
+    } = req.query as unknown as {
+      search?: string;
+      role?: "student" | "teacher" | "admin";
+      page: number;
+      limit: number;
+    };
 
-    const parsedPage = Number.parseInt(String(page), 10);
-    const parsedLimit = Number.parseInt(String(limit), 10);
-    const currentPage =
-      Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1;
-    const limitPerPage =
-      Number.isFinite(parsedLimit) && parsedLimit > 0
-        ? Math.min(parsedLimit, 100)
-        : 10;
-
+    const currentPage = Math.max(1, Number(page) || 1);
+    const limitPerPage = Math.min(100, Math.max(1, Number(limit) || 10));
     const offset = (currentPage - 1) * limitPerPage;
 
     const filterCondition = [];
 
     // If search query exists, filter by user name or user email
     if (search) {
+      const pattern = `%${search.replace(/[%_]/g, "\\$&")}%`;
       filterCondition.push(
         or(
-          ilike(user.name, `%${search}%`),
-          ilike(user.email, `%${search}%`),
+          ilike(user.name, pattern),
+          ilike(user.email, pattern),
         ),
       );
     }
 
     // If role query exists, filter by role
     if (role) {
-      filterCondition.push(eq(user.role, role as "student" | "teacher" | "admin"));
+      filterCondition.push(eq(user.role, role));
     }
 
     // Combine all filters if any exists
@@ -59,7 +71,7 @@ usersRouter.get("/", async (req, res) => {
       .limit(limitPerPage)
       .offset(offset);
 
-    res.status(200).json({
+    return res.status(200).json({
       data: userList,
       pagination: {
         page: currentPage,
@@ -70,8 +82,44 @@ usersRouter.get("/", async (req, res) => {
     });
   } catch (err) {
     console.error(`GET /users error: ${err}`);
-    res.status(500).json({ error: "Failed to get users" });
+    return res.status(500).json({
+      message: "Failed to get users",
+      error: "Failed to get users",
+    });
   }
 });
+
+// GET /api/users/:id - Get a single user by ID
+usersRouter.get(
+  "/:id",
+  validateParams(stringIdParamSchema),
+  async (req, res) => {
+    try {
+      const id = String(req.params.id);
+
+      const [foundUser] = await db
+        .select({
+          ...getTableColumns(user),
+        })
+        .from(user)
+        .where(eq(user.id, id));
+
+      if (!foundUser) {
+        return res.status(404).json({
+          message: "User not found",
+          error: "User not found",
+        });
+      }
+
+      return res.status(200).json({ data: foundUser });
+    } catch (err) {
+      console.error(`GET /users/:id error: ${err}`);
+      return res.status(500).json({
+        message: "Failed to get user",
+        error: "Failed to get user",
+      });
+    }
+  },
+);
 
 export default usersRouter;
