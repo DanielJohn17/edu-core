@@ -13,13 +13,15 @@ import { Toaster } from "./components/refine-ui/notification/toaster";
 import { ThemeProvider } from "./components/refine-ui/theme/theme-provider";
 import "./App.css";
 import Dashboard from "./pages/dashboard";
-import { BookOpen, GraduationCap, Home } from "lucide-react";
+import { BookOpen, Building2, GraduationCap, Home } from "lucide-react";
 import { Layout } from "./components/refine-ui/layout/layout";
 import ClassesCreate from "./pages/classes/create";
 import ClassesList from "./pages/classes/list";
 import SubjectsList from "./pages/subjects/list";
 import SubjectsCreate from "./pages/subjects/create";
 import ClassesShow from "@/pages/classes/show";
+import DepartmentsList from "./pages/departments/list";
+import DepartmentsShow from "./pages/departments/show";
 
 function App() {
   return (
@@ -41,6 +43,12 @@ function App() {
                   name: "dashboard",
                   list: "/",
                   meta: { label: "Home", icon: <Home /> },
+                },
+                {
+                  name: "departments",
+                  list: "/departments",
+                  show: "/departments/show/:id",
+                  meta: { label: "Departments", icon: <Building2 /> },
                 },
                 {
                   name: "subjects",
@@ -66,6 +74,11 @@ function App() {
                   }
                 >
                   <Route path="/" element={<Dashboard />} />
+
+                  <Route path="departments">
+                    <Route index element={<DepartmentsList />} />
+                    <Route path="show/:id" element={<DepartmentsShow />} />
+                  </Route>
 
                   <Route path="subjects">
                     <Route index element={<SubjectsList />} />

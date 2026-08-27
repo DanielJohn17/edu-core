@@ -34,7 +34,13 @@ export type Schedule = {
 export type Department = {
   id: number;
   name: string;
+  code: string;
+  department: number;
   description: string;
+  createdAt?: string;
+  headcount?: number;
+  facultyCount?: number;
+  subjectCount?: number;
 };
 
 export type ClassDetails = {
