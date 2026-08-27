@@ -1,12 +1,13 @@
 import express from "express";
 import { db } from "../db/db";
-import { classes, subjects } from "../db/schema";
+import { classes, departments, subjects, user } from "../db/schema";
 import { and, ilike, or, eq, desc } from "drizzle-orm";
 import { getTableColumns } from "drizzle-orm";
 import { count } from "drizzle-orm";
 
 const classesRouter = express.Router();
 
+// get classes
 classesRouter.get("/", async (req, res) => {
   const { search, subject, page = 1, limit = 10 } = req.query;
 
@@ -46,6 +47,7 @@ classesRouter.get("/", async (req, res) => {
     .select({ count: count() })
     .from(classes)
     .leftJoin(subjects, eq(classes.subjectId, subjects.id))
+    .leftJoin(user, eq(classes.teacherId, user.id))
     .where(whereClause);
 
   const totalCount = countResult[0]?.count ?? 0;
@@ -53,12 +55,16 @@ classesRouter.get("/", async (req, res) => {
   const classList = await db
     .select({
       ...getTableColumns(classes),
-      subjects: {
+      subject: {
         ...getTableColumns(subjects),
       },
+      teacher: {
+        ...getTableColumns(user)
+      }
     })
     .from(classes)
     .leftJoin(subjects, eq(classes.subjectId, subjects.id))
+    .leftJoin(user, eq(classes.teacherId, user.id))
     .where(whereClause)
     .orderBy(desc(classes.createdAt))
     .limit(limitPerPage)
@@ -73,6 +79,39 @@ classesRouter.get("/", async (req, res) => {
       totalPages: Math.ceil(totalCount / limitPerPage),
     },
   });
+});
+
+// get specific class
+classesRouter.get("/:id", async (req, res) => {
+  const classId = Number(req.params.id);
+
+  if (!Number.isFinite(classId))
+    return res.status(400).json({ error: "incorrect class id" });
+
+  const [classDetails] = await db
+    .select({
+      ...getTableColumns(classes),
+      subject: {
+        ...getTableColumns(subjects),
+      },
+      department: {
+        ...getTableColumns(departments),
+      },
+      teacher: {
+        ...getTableColumns(user),
+      },
+    })
+    .from(classes)
+    .leftJoin(subjects, eq(classes.subjectId, subjects.id))
+    .leftJoin(departments, eq(subjects.departmentId, departments.id))
+    .leftJoin(user, eq(classes.teacherId, user.id))
+    .where(eq(classes.id, classId));
+
+  if (!classDetails) {
+    return res.status(404).json({ error: "class not found" });
+  }
+
+  return res.status(200).json({ data: classDetails });
 });
 
 classesRouter.post("/", async (req, res) => {
