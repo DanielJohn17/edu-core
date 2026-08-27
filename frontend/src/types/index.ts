@@ -108,6 +108,51 @@ export type SignUpPayload = {
   role: UserRole;
 };
 
+export type Enrollment = {
+  id: number;
+  studentId: string;
+  classId: number;
+  createdAt: string;
+  student?: {
+    id: string;
+    name: string;
+    email: string;
+    image?: string | null;
+    role?: string;
+    department?: string;
+  };
+  class?: {
+    id: number;
+    name: string;
+    capacity: number;
+    status: "active" | "inactive" | "archived";
+    inviteCode: string;
+    bannerUrl?: string | null;
+    schedules?: Schedule[];
+  };
+  subject?: {
+    id: number;
+    name: string;
+    code: string;
+  };
+  teacher?: {
+    id: string;
+    name: string;
+    email: string;
+    image?: string | null;
+  };
+};
+
+export type CreateEnrollmentPayload = {
+  studentId: string;
+  classId: number;
+};
+
+export type JoinClassPayload = {
+  studentId: string;
+  inviteCode: string;
+};
+
 export type ListResponse<T = unknown> = {
   data?: T[];
   pagination?: {

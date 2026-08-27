@@ -13,7 +13,7 @@ import { Toaster } from "./components/refine-ui/notification/toaster";
 import { ThemeProvider } from "./components/refine-ui/theme/theme-provider";
 import "./App.css";
 import { lazy, Suspense } from "react";
-import { BookOpen, Building2, GraduationCap, Home } from "lucide-react";
+import { BookOpen, Building2, ClipboardCheck, GraduationCap, Home } from "lucide-react";
 import { Layout } from "./components/refine-ui/layout/layout";
 
 const Dashboard = lazy(() => import("./pages/dashboard"));
@@ -24,6 +24,7 @@ const SubjectsList = lazy(() => import("./pages/subjects/list"));
 const SubjectsCreate = lazy(() => import("./pages/subjects/create"));
 const DepartmentsList = lazy(() => import("./pages/departments/list"));
 const DepartmentsShow = lazy(() => import("./pages/departments/show"));
+const EnrollmentsPage = lazy(() => import("./pages/enrollments"));
 
 function PageLoader() {
   return (
@@ -67,6 +68,11 @@ function App() {
                   meta: { label: "Subjects", icon: <BookOpen /> },
                 },
                 {
+                  name: "enrollments",
+                  list: "/enrollments",
+                  meta: { label: "Enrollments", icon: <ClipboardCheck /> },
+                },
+                {
                   name: "classes",
                   list: "/classes",
                   create: "/classes/create",
@@ -95,6 +101,8 @@ function App() {
                       <Route index element={<SubjectsList />} />
                       <Route path="create" element={<SubjectsCreate />} />
                     </Route>
+
+                    <Route path="enrollments" element={<EnrollmentsPage />} />
 
                     <Route path="classes">
                       <Route index element={<ClassesList />} />

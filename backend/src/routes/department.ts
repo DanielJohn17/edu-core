@@ -115,6 +115,8 @@ departmentsRouter.get(
         });
       }
 
+      const { inviteCode: _inviteCode, ...classColumns } = getTableColumns(classes);
+
       // Run parallel queries to fetch all related data with 0 N+1 issues
       const [departmentSubjects, departmentClasses, enrolledResult] =
         await Promise.all([
@@ -125,7 +127,7 @@ departmentsRouter.get(
             .orderBy(desc(subjects.createdAt)),
           db
             .select({
-              ...getTableColumns(classes),
+              ...classColumns,
               subject: {
                 id: subjects.id,
                 name: subjects.name,
@@ -456,9 +458,11 @@ departmentsRouter.get(
 
       const totalCount = countResult?.count ?? 0;
 
+      const { inviteCode: _inviteCode, ...classColumns } = getTableColumns(classes);
+
       const rows = await db
         .select({
-          ...getTableColumns(classes),
+          ...classColumns,
           subject: {
             id: subjects.id,
             name: subjects.name,

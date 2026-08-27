@@ -83,9 +83,11 @@ classesRouter.get("/", validateQuery(classQuerySchema), async (req, res) => {
 
     const totalCount = countResult[0]?.count ?? 0;
 
+    const { inviteCode: _inviteCode, ...classColumns } = getTableColumns(classes);
+
     const classList = await db
       .select({
-        ...getTableColumns(classes),
+        ...classColumns,
         subject: {
           ...getTableColumns(subjects),
         },
@@ -126,10 +128,11 @@ classesRouter.get(
   async (req, res) => {
     try {
       const classId = Number(req.params.id);
+      const { inviteCode: _inviteCode, ...classColumns } = getTableColumns(classes);
 
       const [classDetails] = await db
         .select({
-          ...getTableColumns(classes),
+          ...classColumns,
           subject: {
             ...getTableColumns(subjects),
           },
