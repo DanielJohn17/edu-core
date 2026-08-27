@@ -15,6 +15,8 @@ import securityMiddleware from "./middleware/security";
 import { toNodeHandler } from "better-auth/node";
 import { auth } from "./lib/auth";
 
+import { errorHandler } from "./middleware/error";
+
 const app = express();
 const PORT = 8000;
 
@@ -61,6 +63,9 @@ app.get("/health", async (_req, res) => {
   }
 });
 
+app.use(errorHandler);
+
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
 });
+
