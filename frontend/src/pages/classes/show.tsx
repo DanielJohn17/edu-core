@@ -27,7 +27,7 @@ type ClassUser = {
   image?: string | null;
 };
 
-export default function ClassesShow()  {
+export default function ClassesShow() {
   const { id } = useParams();
   const classId = id ?? "";
 
@@ -77,7 +77,7 @@ export default function ClassesShow()  {
         ),
       },
     ],
-    []
+    [],
   );
 
   const studentsTable = useTable<ClassUser>({
@@ -108,8 +108,8 @@ export default function ClassesShow()  {
           {query.isLoading
             ? "Loading class details..."
             : query.isError
-            ? "Failed to load class details."
-            : "Class details not found."}
+              ? "Failed to load class details."
+              : "Class details not found."}
         </p>
       </ShowView>
     );
@@ -124,7 +124,7 @@ export default function ClassesShow()  {
     .join("");
 
   const placeholderUrl = `https://placehold.co/600x400?text=${encodeURIComponent(
-    teacherInitials || "NA"
+    teacherInitials || "NA",
   )}`;
 
   return (
@@ -138,7 +138,7 @@ export default function ClassesShow()  {
             <AdvancedImage
               cldImg={bannerPhoto(
                 classDetails.bannerCldPubId ?? "",
-                classDetails.name
+                classDetails.name,
               )}
               alt="Class Banner"
             />
@@ -241,12 +241,12 @@ export default function ClassesShow()  {
           <CardTitle>Enrolled Students</CardTitle>
         </CardHeader>
         <CardContent>
-          <DataTable table={studentsTable} paginationVariant="simple" />
+          <DataTable table={studentsTable} />
         </CardContent>
       </Card>
     </ShowView>
   );
-};
+}
 
 const getInitials = (name = "") => {
   const parts = name.trim().split(" ").filter(Boolean);
@@ -256,4 +256,3 @@ const getInitials = (name = "") => {
     parts[parts.length - 1][0] ?? ""
   }`.toUpperCase();
 };
-
