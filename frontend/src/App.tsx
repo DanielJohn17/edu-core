@@ -12,14 +12,26 @@ import { useNotificationProvider } from "./components/refine-ui/notification/use
 import { Toaster } from "./components/refine-ui/notification/toaster";
 import { ThemeProvider } from "./components/refine-ui/theme/theme-provider";
 import "./App.css";
-import Dashboard from "./pages/dashboard";
-import { BookOpen, GraduationCap, Home } from "lucide-react";
+import { lazy, Suspense } from "react";
+import { BookOpen, Building2, GraduationCap, Home } from "lucide-react";
 import { Layout } from "./components/refine-ui/layout/layout";
-import ClassesCreate from "./pages/classes/create";
-import ClassesList from "./pages/classes/list";
-import SubjectsList from "./pages/subjects/list";
-import SubjectsCreate from "./pages/subjects/create";
-import ClassesShow from "@/pages/classes/show";
+
+const Dashboard = lazy(() => import("./pages/dashboard"));
+const ClassesCreate = lazy(() => import("./pages/classes/create"));
+const ClassesList = lazy(() => import("./pages/classes/list"));
+const ClassesShow = lazy(() => import("@/pages/classes/show"));
+const SubjectsList = lazy(() => import("./pages/subjects/list"));
+const SubjectsCreate = lazy(() => import("./pages/subjects/create"));
+const DepartmentsList = lazy(() => import("./pages/departments/list"));
+const DepartmentsShow = lazy(() => import("./pages/departments/show"));
+
+function PageLoader() {
+  return (
+    <div className="flex h-40 w-full items-center justify-center text-sm text-muted-foreground">
+      Loading...
+    </div>
+  );
+}
 
 function App() {
   return (
@@ -43,6 +55,12 @@ function App() {
                   meta: { label: "Home", icon: <Home /> },
                 },
                 {
+                  name: "departments",
+                  list: "/departments",
+                  show: "/departments/show/:id",
+                  meta: { label: "Departments", icon: <Building2 /> },
+                },
+                {
                   name: "subjects",
                   list: "/subjects",
                   create: "/subjects/create",
@@ -57,28 +75,35 @@ function App() {
                 },
               ]}
             >
-              <Routes>
-                <Route
-                  element={
-                    <Layout>
-                      <Outlet />
-                    </Layout>
-                  }
-                >
-                  <Route path="/" element={<Dashboard />} />
+              <Suspense fallback={<PageLoader />}>
+                <Routes>
+                  <Route
+                    element={
+                      <Layout>
+                        <Outlet />
+                      </Layout>
+                    }
+                  >
+                    <Route path="/" element={<Dashboard />} />
 
-                  <Route path="subjects">
-                    <Route index element={<SubjectsList />} />
-                    <Route path="create" element={<SubjectsCreate />} />
-                  </Route>
+                    <Route path="departments">
+                      <Route index element={<DepartmentsList />} />
+                      <Route path="show/:id" element={<DepartmentsShow />} />
+                    </Route>
 
-                  <Route path="classes">
-                    <Route index element={<ClassesList />} />
-                    <Route path="create" element={<ClassesCreate />} />
-                    <Route path="show/:id" element={<ClassesShow />} />
+                    <Route path="subjects">
+                      <Route index element={<SubjectsList />} />
+                      <Route path="create" element={<SubjectsCreate />} />
+                    </Route>
+
+                    <Route path="classes">
+                      <Route index element={<ClassesList />} />
+                      <Route path="create" element={<ClassesCreate />} />
+                      <Route path="show/:id" element={<ClassesShow />} />
+                    </Route>
                   </Route>
-                </Route>
-              </Routes>
+                </Routes>
+              </Suspense>
               <Toaster />
               <RefineKbar />
               <UnsavedChangesNotifier />

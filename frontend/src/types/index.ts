@@ -34,7 +34,52 @@ export type Schedule = {
 export type Department = {
   id: number;
   name: string;
-  description: string;
+  code: string;
+  description: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+export type DepartmentSubject = {
+  id: number;
+  code: string;
+  name: string;
+  description: string | null;
+};
+
+export type DepartmentClass = {
+  id: number;
+  name: string;
+  capacity: number;
+  status: "active" | "inactive" | "archived";
+  subject: { id: number; name: string; code: string } | null;
+  teacher: {
+    id: string;
+    name: string;
+    email: string;
+    image: string | null;
+  } | null;
+};
+
+export type DepartmentStats = {
+  totalSubjects: number;
+  totalClasses: number;
+  enrolledStudents: number;
+};
+
+export type DepartmentTeacher = {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  image: string | null;
+};
+
+export type DepartmentDetail = Department & {
+  subjects: DepartmentSubject[];
+  classes: DepartmentClass[];
+  teachers: DepartmentTeacher[];
+  stats: DepartmentStats;
 };
 
 export type ClassDetails = {

@@ -1,6 +1,6 @@
 import { BACKEND_BASE_URL } from "@/constants";
 import { CreateResponse, ListResponse } from "@/types";
-import { GetOneResponse, HttpError } from "@refinedev/core";
+import { DataProvider, GetOneResponse, HttpError } from "@refinedev/core";
 import { createDataProvider, CreateDataProviderOptions } from "@refinedev/rest";
 
 if (!BACKEND_BASE_URL)
@@ -43,6 +43,11 @@ const options: CreateDataProviderOptions = {
         if (resource === "subjects") {
           if (field === "department") params.department = value;
           if (field === "name" || field === "code") params.search = value;
+        }
+
+        if (resource === "departments") {
+          if (field === "name" || field === "code" || field === "search")
+            params.search = value;
         }
       });
 
