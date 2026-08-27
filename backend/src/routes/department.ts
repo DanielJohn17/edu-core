@@ -77,7 +77,7 @@ departmentsRouter.get("/", async (req, res) => {
   }
 });
 
-// GET /api/departments/:id - get a single department with stats
+// GET /api/departments/:id - get a single department with populated subjects, classes, teachers, and stats
 departmentsRouter.get("/:id", async (req, res) => {
   try {
     const departmentId = Number(req.params.id);
@@ -95,55 +95,73 @@ departmentsRouter.get("/:id", async (req, res) => {
       return res.status(404).json({ error: "Department not found" });
     }
 
-    // Count subjects in this department
-    const [subjectCount] = await db
-      .select({ count: count() })
-      .from(subjects)
-      .where(eq(subjects.departmentId, departmentId));
-
-    // Count classes across subjects in this department
-    const subjectIds = await db
-      .select({ id: subjects.id })
-      .from(subjects)
-      .where(eq(subjects.departmentId, departmentId));
-
-    let classCount = 0;
-    let enrolledCount = 0;
-
-    if (subjectIds.length > 0) {
-      const ids = subjectIds.map((s) => s.id);
-
-      const [classResult] = await db
-        .select({ count: count() })
-        .from(classes)
-        .where(inArray(classes.subjectId, ids));
-
-      classCount = classResult?.count ?? 0;
-
-      if (classCount > 0) {
-        const classIds = await db
-          .select({ id: classes.id })
+    // Run parallel queries to fetch all related data with 0 N+1 issues
+    const [departmentSubjects, departmentClasses, enrolledResult] =
+      await Promise.all([
+        db
+          .select()
+          .from(subjects)
+          .where(eq(subjects.departmentId, departmentId))
+          .orderBy(desc(subjects.createdAt)),
+        db
+          .select({
+            ...getTableColumns(classes),
+            subject: {
+              id: subjects.id,
+              name: subjects.name,
+              code: subjects.code,
+            },
+            teacher: {
+              id: user.id,
+              name: user.name,
+              email: user.email,
+              image: user.image,
+              role: user.role,
+            },
+          })
           .from(classes)
-          .where(inArray(classes.subjectId, ids));
-
-        const cIds = classIds.map((c) => c.id);
-
-        const [enrolledResult] = await db
+          .innerJoin(subjects, eq(classes.subjectId, subjects.id))
+          .leftJoin(user, eq(classes.teacherId, user.id))
+          .where(eq(subjects.departmentId, departmentId))
+          .orderBy(desc(classes.createdAt)),
+        db
           .select({ count: count() })
           .from(enrollments)
-          .where(inArray(enrollments.classId, cIds));
+          .innerJoin(classes, eq(enrollments.classId, classes.id))
+          .innerJoin(subjects, eq(classes.subjectId, subjects.id))
+          .where(eq(subjects.departmentId, departmentId)),
+      ]);
 
-        enrolledCount = enrolledResult?.count ?? 0;
+    // Extract unique teachers from the fetched classes
+    const teacherMap = new Map<
+      string,
+      {
+        id: string;
+        name: string;
+        email: string;
+        image: string | null;
+        role: string;
+      }
+    >();
+
+    for (const cls of departmentClasses) {
+      if (cls.teacher && !teacherMap.has(cls.teacher.id)) {
+        teacherMap.set(cls.teacher.id, cls.teacher);
       }
     }
+
+    const departmentTeachers = Array.from(teacherMap.values());
 
     return res.status(200).json({
       data: {
         ...department,
+        subjects: departmentSubjects,
+        classes: departmentClasses,
+        teachers: departmentTeachers,
         stats: {
-          totalSubjects: subjectCount?.count ?? 0,
-          totalClasses: classCount,
-          enrolledStudents: enrolledCount,
+          totalSubjects: departmentSubjects.length,
+          totalClasses: departmentClasses.length,
+          enrolledStudents: enrolledResult[0]?.count ?? 0,
         },
       },
     });
@@ -365,6 +383,89 @@ departmentsRouter.get("/:id/classes", async (req, res) => {
   } catch (err) {
     console.error(`GET /departments/:id/classes error: ${err}`);
     return res.status(500).json({ error: "Failed to get department classes" });
+  }
+});
+
+// GET /api/departments/:id/teachers - paginated distinct teachers for a department
+departmentsRouter.get("/:id/teachers", async (req, res) => {
+  try {
+    const departmentId = Number(req.params.id);
+
+    if (!Number.isFinite(departmentId)) {
+      return res.status(400).json({ error: "Invalid department id" });
+    }
+
+    const { page = 1, limit = 10 } = req.query;
+    const currentPage = Math.max(1, Number(page));
+    const limitPerPage = Math.min(100, Math.max(1, Number(limit)));
+    const offset = (currentPage - 1) * limitPerPage;
+
+    // Find subjects belonging to this department
+    const subjectIds = await db
+      .select({ id: subjects.id })
+      .from(subjects)
+      .where(eq(subjects.departmentId, departmentId));
+
+    if (subjectIds.length === 0) {
+      return res.status(200).json({
+        data: [],
+        pagination: {
+          page: currentPage,
+          limit: limitPerPage,
+          total: 0,
+          totalPages: 0,
+        },
+      });
+    }
+
+    const sIds = subjectIds.map((s) => s.id);
+
+    // Find teachers of classes in these subjects
+    const classTeachers = await db
+      .select({ teacherId: classes.teacherId })
+      .from(classes)
+      .where(inArray(classes.subjectId, sIds));
+
+    const teacherIds = [
+      ...new Set(classTeachers.map((c) => c.teacherId).filter(Boolean)),
+    ];
+
+    if (teacherIds.length === 0) {
+      return res.status(200).json({
+        data: [],
+        pagination: {
+          page: currentPage,
+          limit: limitPerPage,
+          total: 0,
+          totalPages: 0,
+        },
+      });
+    }
+
+    const totalCount = teacherIds.length;
+
+    const teachersList = await db
+      .select({
+        ...getTableColumns(user),
+      })
+      .from(user)
+      .where(inArray(user.id, teacherIds))
+      .orderBy(desc(user.createdAt))
+      .limit(limitPerPage)
+      .offset(offset);
+
+    return res.status(200).json({
+      data: teachersList,
+      pagination: {
+        page: currentPage,
+        limit: limitPerPage,
+        total: totalCount,
+        totalPages: Math.ceil(totalCount / limitPerPage),
+      },
+    });
+  } catch (err) {
+    console.error(`GET /departments/:id/teachers error: ${err}`);
+    return res.status(500).json({ error: "Failed to get department teachers" });
   }
 });
 

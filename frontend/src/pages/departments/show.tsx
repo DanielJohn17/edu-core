@@ -16,6 +16,7 @@ import {
   DepartmentDetail,
   DepartmentSubject,
   DepartmentClass,
+  DepartmentTeacher,
 } from "@/types";
 
 const getInitials = (name = "") => {
@@ -236,6 +237,82 @@ export default function DepartmentsShow() {
     },
   });
 
+  // ---------- Teachers table ----------
+  const teacherColumns = useMemo<ColumnDef<DepartmentTeacher>[]>(
+    () => [
+      {
+        id: "name",
+        accessorKey: "name",
+        size: 240,
+        header: () => <p className="column-title ml-2">Name</p>,
+        cell: ({ row }) => {
+          const teacher = row.original;
+          const handle = teacher.email
+            ? `@${teacher.email.split("@")[0]}`
+            : "";
+          return (
+            <div className="flex items-center gap-3 ml-2">
+              <Avatar className="h-8 w-8">
+                {teacher.image && (
+                  <AvatarImage src={teacher.image} alt={teacher.name} />
+                )}
+                <AvatarFallback>{getInitials(teacher.name)}</AvatarFallback>
+              </Avatar>
+              <div className="flex flex-col">
+                <span className="text-sm font-semibold text-foreground leading-tight">
+                  {teacher.name}
+                </span>
+                {handle && (
+                  <span className="text-xs text-muted-foreground leading-tight">
+                    {handle}
+                  </span>
+                )}
+              </div>
+            </div>
+          );
+        },
+      },
+      {
+        id: "role",
+        accessorKey: "role",
+        size: 140,
+        header: () => <p className="column-title">Role</p>,
+        cell: ({ getValue }) => {
+          const role = getValue<string>() ?? "Teacher";
+          return (
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-600 border border-blue-500/20">
+              {role.charAt(0).toUpperCase() + role.slice(1)}
+            </span>
+          );
+        },
+      },
+      {
+        id: "action",
+        size: 100,
+        header: () => <p className="column-title justify-end">Action</p>,
+        cell: ({ row }) => (
+          <ShowButton
+            resource="users"
+            recordItemId={row.original.id}
+            variant="outline"
+            size="sm"
+          >
+            View
+          </ShowButton>
+        ),
+      },
+    ],
+    [],
+  );
+
+  const teachersTable = useTable<DepartmentTeacher>({
+    columns: teacherColumns,
+    refineCoreProps: {
+      resource: `departments/${departmentId}/teachers`,
+      pagination: { pageSize: 5, mode: "server" },
+    },
+  });
+
   if (isLoading) {
     return (
       <ShowView className="space-y-6">
@@ -312,6 +389,16 @@ export default function DepartmentsShow() {
         </CardHeader>
         <CardContent>
           <DataTable table={classesTable} />
+        </CardContent>
+      </Card>
+
+      {/* Section 3: Teachers */}
+      <Card className="hover:shadow-md transition-shadow">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>Teachers</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <DataTable table={teachersTable} />
         </CardContent>
       </Card>
     </ShowView>

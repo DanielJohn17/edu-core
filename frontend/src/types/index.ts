@@ -67,9 +67,18 @@ export type DepartmentStats = {
   enrolledStudents: number;
 };
 
+export type DepartmentTeacher = {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  image: string | null;
+};
+
 export type DepartmentDetail = Department & {
   subjects: DepartmentSubject[];
   classes: DepartmentClass[];
+  teachers: DepartmentTeacher[];
   stats: DepartmentStats;
 };
 
