@@ -19,7 +19,7 @@ import { Badge } from "@/components/ui/badge.tsx";
 import { useList } from "@refinedev/core";
 import { ShowButton } from "@/components/refine-ui/buttons/show.tsx";
 
-const ClassesList = () => {
+export default function ClassesList() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSubject, setSelectedSubject] = useState("all");
   const [selectedTeacher, setSelectedTeacher] = useState("all");
@@ -213,6 +213,4 @@ const ClassesList = () => {
       <DataTable table={classTable} />
     </ListView>
   );
-};
-
-export default ClassesList;
+}
