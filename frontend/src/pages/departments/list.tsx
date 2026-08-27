@@ -130,7 +130,7 @@ export default function DepartmentsList() {
             />
           </div>
 
-          <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+          <div className="flex gap-2 w-full sm:w-auto">
             <Select value={selectedSort} onValueChange={setSelectedSort}>
               <SelectTrigger className="w-[160px]">
                 <SelectValue placeholder="Sort by" />

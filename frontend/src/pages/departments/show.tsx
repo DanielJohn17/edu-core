@@ -1,4 +1,4 @@
-import { useShow } from "@refinedev/core";
+import { getDefaultFilter, useShow } from "@refinedev/core";
 import { useTable } from "@refinedev/react-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { useMemo } from "react";
@@ -11,7 +11,15 @@ import { DataTable } from "@/components/refine-ui/data-table/data-table.tsx";
 import { ShowButton } from "@/components/refine-ui/buttons/show.tsx";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card.tsx";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar.tsx";
-import { MoreVertical } from "lucide-react";
+import { Input } from "@/components/ui/input.tsx";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select.tsx";
+import { MoreVertical, Search } from "lucide-react";
 import {
   DepartmentDetail,
   DepartmentSubject,
@@ -324,6 +332,18 @@ export default function DepartmentsShow() {
     );
   }
 
+  // Read filter values directly from Refine's table state
+  const subjectSearchValue =
+    (getDefaultFilter("name", subjectsTable.refineCore.filters) as string) ?? "";
+  const classSearchValue =
+    (getDefaultFilter("name", classesTable.refineCore.filters) as string) ?? "";
+  const classStatusValue =
+    (getDefaultFilter("status", classesTable.refineCore.filters) as string) ?? "all";
+  const teacherSearchValue =
+    (getDefaultFilter("name", teachersTable.refineCore.filters) as string) ?? "";
+  const teacherRoleValue =
+    (getDefaultFilter("role", teachersTable.refineCore.filters) as string) ?? "all";
+
   return (
     <ShowView className="space-y-6 pb-10">
       <ShowViewHeader resource="departments" title={departmentName} />
@@ -374,8 +394,26 @@ export default function DepartmentsShow() {
 
       {/* Section 1: Subjects */}
       <Card className="hover:shadow-md transition-shadow">
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <CardTitle>Subjects</CardTitle>
+          <div className="relative w-full sm:w-64">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder="Search subjects..."
+              className="pl-9 h-9 text-sm"
+              value={subjectSearchValue}
+              onChange={(e) => {
+                const val = e.target.value;
+                subjectsTable.refineCore.setFilters(
+                  val
+                    ? [{ field: "name", operator: "contains", value: val }]
+                    : [],
+                  "replace",
+                );
+              }}
+            />
+          </div>
         </CardHeader>
         <CardContent>
           <DataTable table={subjectsTable} />
@@ -384,8 +422,57 @@ export default function DepartmentsShow() {
 
       {/* Section 2: Classes */}
       <Card className="hover:shadow-md transition-shadow">
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <CardTitle>Classes</CardTitle>
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+            <div className="relative w-full sm:w-56">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder="Search classes..."
+                className="pl-9 h-9 text-sm"
+                value={classSearchValue}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  classesTable.refineCore.setFilters(
+                    [
+                      {
+                        field: "name",
+                        operator: "contains",
+                        value: val || undefined,
+                      },
+                    ],
+                    "merge",
+                  );
+                }}
+              />
+            </div>
+            <Select
+              value={classStatusValue}
+              onValueChange={(val) => {
+                classesTable.refineCore.setFilters(
+                  [
+                    {
+                      field: "status",
+                      operator: "eq",
+                      value: val === "all" ? undefined : val,
+                    },
+                  ],
+                  "merge",
+                );
+              }}
+            >
+              <SelectTrigger className="w-full sm:w-[130px] h-9 text-sm">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="inactive">Inactive</SelectItem>
+                <SelectItem value="archived">Archived</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </CardHeader>
         <CardContent>
           <DataTable table={classesTable} />
@@ -394,8 +481,57 @@ export default function DepartmentsShow() {
 
       {/* Section 3: Teachers */}
       <Card className="hover:shadow-md transition-shadow">
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <CardTitle>Teachers</CardTitle>
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+            <div className="relative w-full sm:w-56">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder="Search teachers..."
+                className="pl-9 h-9 text-sm"
+                value={teacherSearchValue}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  teachersTable.refineCore.setFilters(
+                    [
+                      {
+                        field: "name",
+                        operator: "contains",
+                        value: val || undefined,
+                      },
+                    ],
+                    "merge",
+                  );
+                }}
+              />
+            </div>
+            <Select
+              value={teacherRoleValue}
+              onValueChange={(val) => {
+                teachersTable.refineCore.setFilters(
+                  [
+                    {
+                      field: "role",
+                      operator: "eq",
+                      value: val === "all" ? undefined : val,
+                    },
+                  ],
+                  "merge",
+                );
+              }}
+            >
+              <SelectTrigger className="w-full sm:w-[130px] h-9 text-sm">
+                <SelectValue placeholder="Role" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Roles</SelectItem>
+                <SelectItem value="teacher">Teacher</SelectItem>
+                <SelectItem value="admin">Admin</SelectItem>
+                <SelectItem value="student">Student</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </CardHeader>
         <CardContent>
           <DataTable table={teachersTable} />

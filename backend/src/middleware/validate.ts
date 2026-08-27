@@ -44,7 +44,12 @@ export const validateQuery = (schema: ZodSchema) => {
         errors,
       });
     }
-    req.query = result.data as any;
+    Object.defineProperty(req, "query", {
+      value: result.data,
+      writable: true,
+      enumerable: true,
+      configurable: true,
+    });
     next();
   };
 };
@@ -62,7 +67,12 @@ export const validateParams = (schema: ZodSchema) => {
         errors,
       });
     }
-    req.params = result.data as any;
+    Object.defineProperty(req, "params", {
+      value: result.data,
+      writable: true,
+      enumerable: true,
+      configurable: true,
+    });
     next();
   };
 };

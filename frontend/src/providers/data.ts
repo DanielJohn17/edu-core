@@ -29,25 +29,34 @@ const options: CreateDataProviderOptions = {
   getList: {
     getEndpoint: ({ resource }) => resource,
 
-    buildQueryParams: async ({ resource, filters, pagination }) => {
+    buildQueryParams: async ({ filters, pagination }) => {
       const page = pagination?.currentPage ?? 1;
       const pageSize = pagination?.pageSize ?? 10;
 
       const params: Record<string, string | number> = { page, limit: pageSize };
 
       filters?.forEach((filter) => {
-        const field = "field" in filter ? filter.field : "";
-
-        const value = String(filter.value);
-
-        if (resource === "subjects") {
-          if (field === "department") params.department = value;
-          if (field === "name" || field === "code") params.search = value;
+        if (!("field" in filter) || filter.value === undefined || filter.value === null || filter.value === "" || filter.value === "all") {
+          return;
         }
 
-        if (resource === "departments") {
-          if (field === "name" || field === "code" || field === "search")
-            params.search = value;
+        const field = filter.field;
+        const value = String(filter.value);
+
+        if (field === "search" || field === "name" || field === "code" || field === "email") {
+          params.search = value;
+        } else if (field === "status") {
+          params.status = value;
+        } else if (field === "subject") {
+          params.subject = value;
+        } else if (field === "department") {
+          params.department = value;
+        } else if (field === "teacher" || field === "teacherId") {
+          params.teacherId = value;
+        } else if (field === "role") {
+          params.role = value;
+        } else {
+          params[field] = value;
         }
       });
 

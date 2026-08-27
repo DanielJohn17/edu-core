@@ -7,6 +7,7 @@ import {
   ilike,
   inArray,
   or,
+  SQL,
 } from "drizzle-orm";
 import express from "express";
 import { db } from "../db/db";
@@ -19,6 +20,7 @@ import {
 import {
   createDepartmentSchema,
   departmentQuerySchema,
+  departmentSubQuerySchema,
   numericIdParamSchema,
   paginationQuerySchema,
   updateDepartmentSchema,
@@ -321,33 +323,56 @@ departmentsRouter.delete(
   },
 );
 
-// GET /api/departments/:id/subjects - paginated subjects for a department
+// GET /api/departments/:id/subjects - paginated subjects for a department with search
 departmentsRouter.get(
   "/:id/subjects",
   validateParams(numericIdParamSchema),
-  validateQuery(paginationQuerySchema),
+  validateQuery(departmentSubQuerySchema),
   async (req, res) => {
     try {
       const departmentId = Number(req.params.id);
-      const { page = 1, limit = 10 } = req.query as unknown as {
+      const {
+        page = 1,
+        limit = 10,
+        search,
+      } = req.query as unknown as {
         page: number;
         limit: number;
+        search?: string;
       };
       const currentPage = Math.max(1, Number(page) || 1);
       const limitPerPage = Math.min(100, Math.max(1, Number(limit) || 10));
       const offset = (currentPage - 1) * limitPerPage;
 
+      const filterConditions: (SQL | undefined)[] = [
+        eq(subjects.departmentId, departmentId),
+      ];
+
+      if (search) {
+        const pattern = `%${search.replace(/[%_]/g, "\\$&")}%`;
+        filterConditions.push(
+          or(
+            ilike(subjects.name, pattern),
+            ilike(subjects.code, pattern),
+          ),
+        );
+      }
+
+      const whereClause = and(
+        ...filterConditions.filter((c): c is SQL => Boolean(c)),
+      );
+
       const [countResult] = await db
         .select({ count: count() })
         .from(subjects)
-        .where(eq(subjects.departmentId, departmentId));
+        .where(whereClause);
 
       const totalCount = countResult?.count ?? 0;
 
       const rows = await db
         .select()
         .from(subjects)
-        .where(eq(subjects.departmentId, departmentId))
+        .where(whereClause)
         .orderBy(desc(subjects.createdAt))
         .limit(limitPerPage)
         .offset(offset);
@@ -371,27 +396,63 @@ departmentsRouter.get(
   },
 );
 
-// GET /api/departments/:id/classes - paginated classes for a department
+// GET /api/departments/:id/classes - paginated classes for a department with search and status filters
 departmentsRouter.get(
   "/:id/classes",
   validateParams(numericIdParamSchema),
-  validateQuery(paginationQuerySchema),
+  validateQuery(departmentSubQuerySchema),
   async (req, res) => {
     try {
       const departmentId = Number(req.params.id);
-      const { page = 1, limit = 10 } = req.query as unknown as {
+      const {
+        page = 1,
+        limit = 10,
+        search,
+        status,
+        teacherId,
+      } = req.query as unknown as {
         page: number;
         limit: number;
+        search?: string;
+        status?: "active" | "inactive" | "archived";
+        teacherId?: string;
       };
       const currentPage = Math.max(1, Number(page) || 1);
       const limitPerPage = Math.min(100, Math.max(1, Number(limit) || 10));
       const offset = (currentPage - 1) * limitPerPage;
 
+      const filterConditions: (SQL | undefined)[] = [
+        eq(subjects.departmentId, departmentId),
+      ];
+
+      if (search) {
+        const pattern = `%${search.replace(/[%_]/g, "\\$&")}%`;
+        filterConditions.push(
+          or(
+            ilike(classes.name, pattern),
+            ilike(classes.inviteCode, pattern),
+            ilike(subjects.name, pattern),
+          ),
+        );
+      }
+
+      if (status) {
+        filterConditions.push(eq(classes.status, status));
+      }
+
+      if (teacherId) {
+        filterConditions.push(eq(classes.teacherId, teacherId));
+      }
+
+      const whereClause = and(
+        ...filterConditions.filter((c): c is SQL => Boolean(c)),
+      );
+
       const [countResult] = await db
         .select({ count: count() })
         .from(classes)
         .leftJoin(subjects, eq(classes.subjectId, subjects.id))
-        .where(eq(subjects.departmentId, departmentId));
+        .where(whereClause);
 
       const totalCount = countResult?.count ?? 0;
 
@@ -413,7 +474,7 @@ departmentsRouter.get(
         .from(classes)
         .leftJoin(subjects, eq(classes.subjectId, subjects.id))
         .leftJoin(user, eq(classes.teacherId, user.id))
-        .where(eq(subjects.departmentId, departmentId))
+        .where(whereClause)
         .orderBy(desc(classes.createdAt))
         .limit(limitPerPage)
         .offset(offset);
@@ -437,17 +498,24 @@ departmentsRouter.get(
   },
 );
 
-// GET /api/departments/:id/teachers - paginated distinct teachers for a department
+// GET /api/departments/:id/teachers - paginated distinct teachers for a department with search and role filters
 departmentsRouter.get(
   "/:id/teachers",
   validateParams(numericIdParamSchema),
-  validateQuery(paginationQuerySchema),
+  validateQuery(departmentSubQuerySchema),
   async (req, res) => {
     try {
       const departmentId = Number(req.params.id);
-      const { page = 1, limit = 10 } = req.query as unknown as {
+      const {
+        page = 1,
+        limit = 10,
+        search,
+        role,
+      } = req.query as unknown as {
         page: number;
         limit: number;
+        search?: string;
+        role?: "student" | "teacher" | "admin";
       };
       const currentPage = Math.max(1, Number(page) || 1);
       const limitPerPage = Math.min(100, Math.max(1, Number(limit) || 10));
@@ -495,14 +563,41 @@ departmentsRouter.get(
         });
       }
 
-      const totalCount = teacherIds.length;
+      const filterConditions: (SQL | undefined)[] = [
+        inArray(user.id, teacherIds),
+      ];
+
+      if (search) {
+        const pattern = `%${search.replace(/[%_]/g, "\\$&")}%`;
+        filterConditions.push(
+          or(
+            ilike(user.name, pattern),
+            ilike(user.email, pattern),
+          ),
+        );
+      }
+
+      if (role) {
+        filterConditions.push(eq(user.role, role));
+      }
+
+      const whereClause = and(
+        ...filterConditions.filter((c): c is SQL => Boolean(c)),
+      );
+
+      const [countResult] = await db
+        .select({ count: count() })
+        .from(user)
+        .where(whereClause);
+
+      const totalCount = countResult?.count ?? 0;
 
       const teachersList = await db
         .select({
           ...getTableColumns(user),
         })
         .from(user)
-        .where(inArray(user.id, teacherIds))
+        .where(whereClause)
         .orderBy(desc(user.createdAt))
         .limit(limitPerPage)
         .offset(offset);

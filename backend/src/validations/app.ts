@@ -48,6 +48,12 @@ export const departmentQuerySchema = paginationQuerySchema.extend({
   name: z.string().trim().optional(),
 });
 
+export const departmentSubQuerySchema = paginationQuerySchema.extend({
+  status: z.enum(["active", "inactive", "archived"]).optional(),
+  teacherId: z.string().trim().optional(),
+  role: z.enum(["student", "teacher", "admin"]).optional(),
+});
+
 // Subject Schemas
 export const createSubjectSchema = z.object({
   departmentId: z.coerce
